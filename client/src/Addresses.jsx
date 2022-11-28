@@ -15,21 +15,8 @@ function Addresses({ address, setAddress, balance, setBalance }) {
         getAddresses()
     }, [])
 
-    async function onChange(evt) {
-        const address = evt.target.value
-        setAddress(address)
-        if (address) {
-            const {
-                data: { balance },
-            } = await server.get(`balance/${address}`)
-            setBalance(balance)
-        } else {
-            setBalance(0)
-        }
-    }
-
     return (
-        <div className="container wallet">
+        <div className="container addresses">
             <h1>Addresses</h1>
 
             <label>

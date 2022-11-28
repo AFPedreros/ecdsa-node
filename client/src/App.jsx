@@ -9,20 +9,18 @@ function App() {
     const [address, setAddress] = useState("")
 
     return (
-        <div className="app">
-            <Wallet
-                balance={balance}
-                setBalance={setBalance}
-                address={address}
-                setAddress={setAddress}
-            />
-            <Transfer setBalance={setBalance} address={address} />
-            <Addresses
-                balance={balance}
-                setBalance={setBalance}
-                address={address}
-                setAddress={setAddress}
-            />
+        <div>
+            <div className="app">
+                <Wallet
+                    balance={balance}
+                    setBalance={setBalance}
+                    address={address}
+                    setAddress={setAddress}
+                />
+                <Transfer setBalance={setBalance} address={address} />
+            </div>
+
+            <Addresses />
         </div>
     )
 }
