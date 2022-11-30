@@ -15,8 +15,8 @@ label {
 }
 
 .app {
-    display: flex;
-    max-width: 1400px;
+    display: grid;
+    grid-template-columns: auto auto;
     flex-wrap: wrap;
     gap: 12px;
     margin: 0 auto;

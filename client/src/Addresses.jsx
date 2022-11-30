@@ -1,8 +1,8 @@
 import server from "./server"
 import { useState, useEffect } from "react"
 
-function Addresses({ address, setAddress, balance, setBalance }) {
-    const [generatedAddresses, setGeneratedAddresses] = useState("")
+function Addresses() {
+    const [generatedAddresses, setGeneratedAddresses] = useState([])
 
     async function getAddresses() {
         const {
@@ -13,10 +13,10 @@ function Addresses({ address, setAddress, balance, setBalance }) {
 
     useEffect(() => {
         getAddresses()
-    }, [])
+    })
 
     return (
-        <div className="container addresses">
+        <div className="container">
             <h1>Addresses</h1>
 
             <label>
