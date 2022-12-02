@@ -7,25 +7,20 @@ const secp = require("ethereum-cryptography/secp256k1")
 const { toHex } = require("ethereum-cryptography/utils")
 const { keccak256 } = require("ethereum-cryptography/keccak")
 
+let counter = 0
+let wallet = {}
+
 app.use(cors())
 app.use(express.json())
 
-const address1 = generate().address.toString()
-const address2 = generate().address.toString()
-const address3 = generate().address.toString()
-
-const key1 = generate().privateKey.toString()
-const key2 = generate().privateKey.toString()
-const key3 = generate().privateKey.toString()
-
-console.log("Address 1: ", address1)
-console.log("Address 2: ", address2)
-console.log("Address 3: ", address3)
+const wallet1 = generate()
+const wallet2 = generate()
+const wallet3 = generate()
 
 const balances = {
-    [address1]: 100,
-    [address2]: 50,
-    [address3]: 75,
+    [wallet1.address]: 100,
+    [wallet2.address]: 50,
+    [wallet3.address]: 75,
 }
 
 app.get("/balance/:address", (req, res) => {
@@ -34,18 +29,20 @@ app.get("/balance/:address", (req, res) => {
     res.send({ balance })
 })
 
-app.get("/addresses", (req, res) => {
-    const addresses = [address1, address2, address3]
-    res.send({ addresses })
-})
-
-app.get("/keys", (req, res) => {
-    const keys = [key1, key2, key3]
-    res.send({ keys })
+app.get("/wallets", (req, res) => {
+    const wallets = [wallet1, wallet2, wallet3]
+    res.send({ wallets })
 })
 
 app.post("/send", (req, res) => {
-    const { sender, recipient, amount } = req.body
+    const { sender, recipient, amount, publicKey, signature, recoveryBit } =
+        req.body
+
+    console.log("Sender : ", sender)
+    console.log("Recipient : ", recipient)
+    console.log("Amount : ", amount)
+    console.log("Signature : ", signature)
+    console.log("Recovery Bit : ", recoveryBit)
 
     setInitialBalance(sender)
     setInitialBalance(recipient)
@@ -73,12 +70,14 @@ function generate() {
     const privateKey = secp.utils.randomPrivateKey()
     const publicKey = secp.getPublicKey(privateKey)
     const address = keccak256(publicKey.slice(1)).slice(-20)
+    counter++
 
-    // console.log("Private key:", toHex(privateKey))
-    // console.log("Public key:", toHex(publicKey))
-    // console.log("Address:", toHex(address))
+    console.log(counter)
+    console.log("Private key:", toHex(privateKey))
+    console.log("Public key:", toHex(publicKey))
+    console.log("Address:", toHex(address))
 
-    const wallet = {
+    wallet = {
         privateKey: toHex(privateKey),
         publicKey: toHex(publicKey),
         address: toHex(address),

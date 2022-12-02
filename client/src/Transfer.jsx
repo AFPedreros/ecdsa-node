@@ -1,12 +1,28 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import server from "./server"
 
 function Transfer({ address, setBalance }) {
     const [sendAmount, setSendAmount] = useState("")
     const [recipient, setRecipient] = useState("")
-    const [privateKey, setPrivateKey] = useState("")
+    const [signature, setSignature] = useState("")
+    const [recoveryBit, setRecoveryBit] = useState("")
+    const [publicKey, setPublicKey] = useState("")
 
     const setValue = (setter) => (evt) => setter(evt.target.value)
+
+    const [frontWallets, setFrontWallets] = useState([])
+
+    async function getWallets() {
+        const {
+            data: { wallets },
+        } = await server.get("/wallets")
+
+        setFrontWallets(wallets)
+    }
+
+    useEffect(() => {
+        getWallets()
+    }, [])
 
     async function transfer(evt) {
         evt.preventDefault()
@@ -18,6 +34,9 @@ function Transfer({ address, setBalance }) {
                 sender: address,
                 amount: parseInt(sendAmount),
                 recipient,
+                signature,
+                recoveryBit: parseInt(recoveryBit),
+                publicKey,
             })
             setBalance(balance)
         } catch (ex) {
@@ -48,11 +67,29 @@ function Transfer({ address, setBalance }) {
             </label>
 
             <label>
-                Private Key
+                Signature
                 <input
-                    placeholder="Type your private key"
-                    value={privateKey}
-                    onChange={setValue(setPrivateKey)}
+                    placeholder="Type the signature"
+                    value={signature}
+                    onChange={setValue(setSignature)}
+                ></input>
+            </label>
+
+            <label>
+                Recovery Bit
+                <input
+                    placeholder="0"
+                    value={recoveryBit}
+                    onChange={setValue(setRecoveryBit)}
+                ></input>
+            </label>
+
+            <label>
+                Public Key (verify signature)
+                <input
+                    placeholder="0x"
+                    value={publicKey}
+                    onChange={setValue(setPublicKey)}
                 ></input>
             </label>
 
