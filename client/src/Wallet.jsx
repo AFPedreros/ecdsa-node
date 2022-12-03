@@ -1,6 +1,13 @@
 import server from "./server"
 
-function Wallet({ address, setAddress, balance, setBalance }) {
+function Wallet({
+    address,
+    setAddress,
+    balance,
+    setBalance,
+    recipient,
+    sendAmount,
+}) {
     async function onChange(evt) {
         const address = evt.target.value
         setAddress(address)
@@ -14,8 +21,26 @@ function Wallet({ address, setAddress, balance, setBalance }) {
         }
     }
 
+    async function sign(evt) {
+        evt.preventDefault()
+
+        try {
+            const {
+                data: { signature, recoveryBit },
+            } = await server.post(`sign`, {
+                sender: address,
+                amount: parseInt(sendAmount),
+                recipient,
+            })
+            console.log(signature)
+            console.log(recoveryBit)
+        } catch (ex) {
+            alert(ex.response.data.message)
+        }
+    }
+
     return (
-        <div className="container wallet">
+        <form className="container wallet" onSubmit={sign}>
             <h1>Your Wallet</h1>
 
             <label>
@@ -28,7 +53,8 @@ function Wallet({ address, setAddress, balance, setBalance }) {
             </label>
 
             <div className="balance">Balance: {balance}</div>
-        </div>
+            <input type="submit" className="button" value="Sign" />
+        </form>
     )
 }
 

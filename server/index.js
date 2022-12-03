@@ -4,7 +4,7 @@ const cors = require("cors")
 const port = 3042
 
 const secp = require("ethereum-cryptography/secp256k1")
-const { toHex } = require("ethereum-cryptography/utils")
+const { toHex, utf8ToBytes } = require("ethereum-cryptography/utils")
 const { keccak256 } = require("ethereum-cryptography/keccak")
 
 let counter = 0
@@ -23,6 +23,12 @@ const balances = {
     [wallet3.address]: 75,
 }
 
+const privateKeys = {
+    [wallet1.address]: wallet1.privateKey,
+    [wallet2.address]: wallet2.privateKey,
+    [wallet3.address]: wallet3.privateKey,
+}
+
 app.get("/balance/:address", (req, res) => {
     const { address } = req.params
     const balance = balances[address] || 0
@@ -35,24 +41,76 @@ app.get("/wallets", (req, res) => {
 })
 
 app.post("/send", (req, res) => {
-    const { sender, recipient, amount, publicKey, signature, recoveryBit } =
+    const { sender, recipient, amount, signature, recoveryBit, publicKey } =
         req.body
 
-    console.log("Sender : ", sender)
-    console.log("Recipient : ", recipient)
-    console.log("Amount : ", amount)
-    console.log("Signature : ", signature)
-    console.log("Recovery Bit : ", recoveryBit)
+    console.log("Sender: ", sender)
+    console.log("Recipient: ", recipient)
+    console.log("Amount: ", amount)
+    console.log("Signature: ", signature)
+    console.log("Recovery Bit: ", recoveryBit)
+    console.log("Public Key: ", publicKey)
+
+    const message = {
+        from: sender,
+        to: recipient,
+        amount,
+    }
+
+    const messageHash = toHex(keccak256(utf8ToBytes(JSON.stringify(message))))
+    const recoverKey = secp.recoverPublicKey(
+        messageHash,
+        signature,
+        recoveryBit
+    )
+
+    console.log("Recovery Key: ", toHex(recoverKey))
 
     setInitialBalance(sender)
     setInitialBalance(recipient)
 
-    if (balances[sender] < amount) {
+    if (toHex(recoverKey) !== publicKey) {
+        res.status(400).send({ message: "Wrong signature!" })
+    } else if (balances[sender] < amount) {
         res.status(400).send({ message: "Not enough funds!" })
     } else {
         balances[sender] -= amount
         balances[recipient] += amount
         res.send({ balance: balances[sender] })
+    }
+})
+
+app.post("/sign", async (req, res) => {
+    const { sender, recipient, amount } = req.body
+
+    if (sender && amount && recipient) {
+        const privateKey = privateKeys[sender]
+
+        const message = {
+            from: sender,
+            to: recipient,
+            amount,
+        }
+
+        // console.log("Message : ", message)
+
+        const messageHash = toHex(
+            keccak256(utf8ToBytes(JSON.stringify(message)))
+        )
+        // console.log("Hashed Message : ", messageHash)
+
+        const [signature, recoveryBit] = await secp.sign(
+            messageHash,
+            privateKey,
+            {
+                recovered: true,
+            }
+        )
+        // console.log("Signature : ", toHex(signature))
+        // console.log("Recovery Bit : ", recoveryBit)
+        res.send({ signature: toHex(signature), recoveryBit: recoveryBit })
+    } else {
+        res.status(400).send({ message: "Missing information!" })
     }
 })
 

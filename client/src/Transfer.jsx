@@ -1,23 +1,26 @@
 import { useState, useEffect } from "react"
 import server from "./server"
 
-function Transfer({ address, setBalance }) {
-    const [sendAmount, setSendAmount] = useState("")
-    const [recipient, setRecipient] = useState("")
-    const [signature, setSignature] = useState("")
-    const [recoveryBit, setRecoveryBit] = useState("")
-    const [publicKey, setPublicKey] = useState("")
-
+function Transfer({
+    address,
+    setBalance,
+    sendAmount,
+    setSendAmount,
+    recipient,
+    setRecipient,
+    signature,
+    setSignature,
+    recoveryBit,
+    setRecoveryBit,
+    publicKey,
+    setPublicKey,
+}) {
     const setValue = (setter) => (evt) => setter(evt.target.value)
-
-    const [frontWallets, setFrontWallets] = useState([])
 
     async function getWallets() {
         const {
             data: { wallets },
         } = await server.get("/wallets")
-
-        setFrontWallets(wallets)
     }
 
     useEffect(() => {
